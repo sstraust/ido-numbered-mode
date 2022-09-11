@@ -1,4 +1,0 @@
-# Ido Numbered Mode
-Add numbered selection to ido-mode.
-
-`Buffer: {0 .emacs | 1 *Messages* | 2 *scratch* | 3 *shell*}`
