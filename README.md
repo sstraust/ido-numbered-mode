@@ -14,8 +14,11 @@ e.g. your .emacs should have
 
 `
 (require 'ido-mode)
+
 (ido-mode 1)
+
 (require 'ido-numbered-mode)
+
 (ido-numbered-mode 1)
 `
 
