@@ -12,12 +12,11 @@ In order to turn this on, you must use ido-mode, and turn on ido-mode first.
 
 e.g. your .emacs should have
 
-`
 (require 'ido-mode)
 (ido-mode 1)
 (require 'ido-numbered-mode)
 (ido-numbered-mode 1)
-`
+
 
 To get the code, copy it into your init directory, and add it to your load path e.g. in your .emacs, add 
 `(add-to-list 'load-path "~/.emacs.d/downloadedCode")`
