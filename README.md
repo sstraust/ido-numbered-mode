@@ -19,8 +19,34 @@ e.g. your .emacs should have
 (ido-numbered-mode 1)
 ```
 
-To get the code, copy it into your init directory, and add it to your load path e.g. in your .emacs, add 
-`(add-to-list 'load-path "~/.emacs.d/downloadedCode")`
+### Detailed Instructions
+
+Go to the directory containing your emacs configuration files
+```
+$ cd .emacs.d
+```
+
+Clone this repository
+
+```
+$ git clone https://github.com/sstraust/ido-numbered-mode.git
+```
+
+Open up your emacs configuration file (usually ~/.emacs)
+
+Add this to the top of your .emacs file, to make sure the code is on the load path:
+
+```
+(add-to-list 'load-path "~/.emacs.d/ido-numbered-mode/")
+```
+
+Add this  to your .emacs file to turn on ido-mode and ido-numbered-mode
+```
+(require 'ido-mode)
+(ido-mode 1)
+(require 'ido-numbered-mode)
+(ido-numbered-mode 1)
+```
 
 ## Note
 
