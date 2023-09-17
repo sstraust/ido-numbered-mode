@@ -1,4 +1,5 @@
 (defun ido-numbered-select-number (num)
+  "Select the nth match and go to it."
   (interactive)
   (if (> (length ido-text) 0)
       (self-insert-command num)
@@ -32,6 +33,8 @@
 	   
 
 (defun ido-numbered-add-numbers-to-matches (input-str)
+  "Display ido matches in a numbered list, i.e. {0 match1} {1 match2}, etc.
+takes as input the currently displayed/otherwise displayed completion string"
   (ido-numbered-add-numbers-helper input-str ido-matches 0))
 
 (defvar ido-numbered-set-matches-set nil)
@@ -62,7 +65,7 @@
 
 ;;;###autoload
 (define-minor-mode ido-numbered-mode
-  "I don't write docs lol"
+  "Adds numbers to ido mode. If you type a number n, it goes to the nth completion"
   :global t
   (if ido-numbered-mode
       (ido-numbered-mode-turn-on)
@@ -70,7 +73,3 @@
 
 
 (provide 'ido-numbered-mode)
-(require 'ido-numbered-mode)
-
-;; ;; (ido-numbered-mode-turn-on)
-;; (ido-numbered-mode-turn-off)
