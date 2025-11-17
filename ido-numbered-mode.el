@@ -2,7 +2,7 @@
   "Select the nth match and go to it."
   (interactive)
   (if (> (length ido-text) 0)
-      (self-insert-command num)
+      (self-insert-command 1)
     (when (> (length ido-matches) num)
       (dotimes (i num)
 	(ido-next-match))
