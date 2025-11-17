@@ -18,7 +18,7 @@
   "Mock version of self-insert-command that records insertions."
   (setq test-insert-count n)
   (dotimes (i n)
-    (setq test-inserted-text (concat test-inserted-text (number-to-string last-command-event)))))
+    (setq test-inserted-text (concat test-inserted-text (char-to-string last-command-event)))))
 
 (ert-deftest test-self-insert-with-text ()
   "Test that typing a number when ido-text exists inserts it only once."
