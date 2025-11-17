@@ -1,0 +1,8 @@
+FROM silex/emacs:29-alpine
+
+WORKDIR /app
+
+COPY ido-numbered-mode.el .
+COPY test-ido-numbered-mode.el .
+
+CMD ["emacs", "-batch", "-l", "ert", "-l", "test-ido-numbered-mode.el", "-f", "ert-run-tests-batch-and-exit"]
