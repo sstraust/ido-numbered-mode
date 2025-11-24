@@ -1,0 +1,27 @@
+# Multi-process container using supervisord
+FROM node:20-bullseye
+
+# Install Python and supervisord
+RUN apt-get update && apt-get install -y \
+    python3.11 \
+    python3-pip \
+    supervisor \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /app
+
+# Copy dependency files
+COPY package*.json requirements.txt ./
+RUN npm install && pip3 install --no-cache-dir -r requirements.txt
+
+# Copy application code
+COPY . .
+
+# Copy supervisord config
+COPY supervisord.conf /etc/supervisor/conf.d/supervisord.conf
+
+# Expose ports
+EXPOSE 3000 8000
+
+# Start supervisord
+CMD ["/usr/bin/supervisord", "-c", "/etc/supervisor/conf.d/supervisord.conf"]

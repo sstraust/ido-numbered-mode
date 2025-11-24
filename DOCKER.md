@@ -284,21 +284,31 @@ docker-compose down -v
 docker-compose up -d --build
 ```
 
-## Systemd Services
+## Process Management & Systemd Services
 
-If you need to run additional services on the host machine (outside Docker), see:
-- **SYSTEMD.md** - Guide for choosing between Docker and systemd services
-- **SYSTEMD-TO-DOCKER.md** - Convert existing systemd services to Docker
-- **resources/systemctl/** - Systemd service files and installation scripts
+Multiple options for running services - choose the standard tool for your needs:
 
-To install systemd services:
+- **PROCESS-MANAGEMENT.md** - Complete comparison of Docker Compose, supervisord, s6-overlay
+- **SYSTEMD-TO-DOCKER.md** - Convert systemd services to Docker Compose (separate containers)
+- **SYSTEMD.md** - When to use systemd vs Docker
+
+### Convert Systemd Services
+
+**To Docker Compose (recommended - separate containers):**
 ```bash
-sudo ./install-services.sh
+./systemd-to-docker.sh > converted.yml
 ```
 
-To convert systemd services to Docker:
+**To Supervisord (multi-process in one container):**
 ```bash
-./systemd-to-docker.sh
+./systemd-to-supervisord.sh > supervisord.conf
+```
+
+### Install Systemd Services on Host
+
+If you still want to use systemd on the host:
+```bash
+sudo ./install-services.sh
 ```
 
 ## Production Deployment
