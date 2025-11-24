@@ -1,11 +1,12 @@
 # Docker Setup Guide
 
-This project includes Docker Compose configuration for MongoDB and PostgreSQL with pgvector extension.
+This project includes Docker Compose configuration for a full-stack application with MongoDB, PostgreSQL (pgvector), Python, and Node.js.
 
 ## Prerequisites
 
 - Docker Engine (20.10.0 or higher)
 - Docker Compose (2.0.0 or higher)
+- `package.json` and `requirements.txt` files in your project root
 
 ## Quick Start
 
@@ -17,10 +18,11 @@ This project includes Docker Compose configuration for MongoDB and PostgreSQL wi
 2. **Edit `.env` with your desired credentials:**
    - Update passwords for security
    - Adjust ports if needed
+   - Configure APP_COMMAND for your startup script
 
-3. **Start the services:**
+3. **Build and start the services:**
    ```bash
-   docker-compose up -d
+   docker-compose up -d --build
    ```
 
 4. **Verify services are running:**
@@ -29,6 +31,19 @@ This project includes Docker Compose configuration for MongoDB and PostgreSQL wi
    ```
 
 ## Services
+
+### Application Service
+- **Runtime**: Node.js 20 + Python 3.11
+- **Default Ports**: 3000 (web), 8000 (API)
+- **Features**:
+  - Automatic installation of npm packages from `package.json`
+  - Automatic installation of Python packages from `requirements.txt`
+  - Hot-reload support with volume mounting
+  - Auto-connects to PostgreSQL and MongoDB
+- **Environment Variables**:
+  - `POSTGRES_URL`: Full PostgreSQL connection string
+  - `MONGODB_URL`: Full MongoDB connection string
+  - `NODE_ENV`: development/production
 
 ### PostgreSQL with pgvector
 - **Image**: pgvector/pgvector:pg16
@@ -43,7 +58,12 @@ This project includes Docker Compose configuration for MongoDB and PostgreSQL wi
 
 ## Common Commands
 
-### Start services
+### Build and start all services
+```bash
+docker-compose up -d --build
+```
+
+### Start services (without rebuilding)
 ```bash
 docker-compose up -d
 ```
@@ -55,7 +75,36 @@ docker-compose down
 
 ### View logs
 ```bash
+# All services
 docker-compose logs -f
+
+# Specific service
+docker-compose logs -f app
+docker-compose logs -f postgres
+docker-compose logs -f mongodb
+```
+
+### Rebuild app after dependency changes
+```bash
+docker-compose up -d --build app
+```
+
+### Execute commands in app container
+```bash
+# Run Python script
+docker-compose exec app python3 script.py
+
+# Run Node.js script
+docker-compose exec app node script.js
+
+# Install additional npm package
+docker-compose exec app npm install package-name
+
+# Install additional Python package
+docker-compose exec app pip3 install package-name
+
+# Access bash shell
+docker-compose exec app bash
 ```
 
 ### Stop and remove all data (⚠️ destructive)
@@ -82,14 +131,44 @@ docker-compose exec mongodb mongosh -u admin -p admin
 
 ## Connection Strings
 
-### PostgreSQL
+### From Your Host Machine
+
+#### PostgreSQL
 ```
 postgresql://postgres:your_password@localhost:5432/mydb
 ```
 
-### MongoDB
+#### MongoDB
 ```
 mongodb://admin:your_password@localhost:27017/mydb?authSource=admin
+```
+
+### From Within Docker Containers (app service)
+
+The app service automatically has these environment variables set:
+
+#### PostgreSQL
+```
+POSTGRES_URL=postgresql://postgres:password@postgres:5432/mydb
+```
+
+#### MongoDB
+```
+MONGODB_URL=mongodb://admin:password@mongodb:27017/mydb?authSource=admin
+```
+
+Use these in your application code:
+```javascript
+// Node.js example
+const pgUrl = process.env.POSTGRES_URL;
+const mongoUrl = process.env.MONGODB_URL;
+```
+
+```python
+# Python example
+import os
+pg_url = os.getenv('POSTGRES_URL')
+mongo_url = os.getenv('MONGODB_URL')
 ```
 
 ## Initialization Scripts
@@ -123,6 +202,47 @@ docker-compose exec mongodb mongodump --username admin --password admin --authen
 docker-compose exec mongodb mongorestore --username admin --password admin --authenticationDatabase admin /data/backup
 ```
 
+## Development Workflow
+
+### Making Code Changes
+Your code is mounted as a volume, so changes are reflected immediately:
+- Node.js: Use `nodemon` or similar for auto-restart
+- Python: Use `watchdog` or similar for auto-reload
+
+### Adding Dependencies
+
+#### Node.js
+```bash
+# Add to package.json, then rebuild
+docker-compose up -d --build app
+
+# OR install directly (temporary, lost on rebuild)
+docker-compose exec app npm install package-name
+```
+
+#### Python
+```bash
+# Add to requirements.txt, then rebuild
+docker-compose up -d --build app
+
+# OR install directly (temporary, lost on rebuild)
+docker-compose exec app pip3 install package-name
+```
+
+### Running Scripts
+
+```bash
+# Python
+docker-compose exec app python3 your_script.py
+
+# Node.js
+docker-compose exec app node your_script.js
+
+# NPM scripts
+docker-compose exec app npm run test
+docker-compose exec app npm run build
+```
+
 ## Troubleshooting
 
 ### Check service health
@@ -132,18 +252,49 @@ docker-compose ps
 
 ### View service logs
 ```bash
+docker-compose logs app
 docker-compose logs postgres
 docker-compose logs mongodb
 ```
 
 ### Restart a service
 ```bash
+docker-compose restart app
 docker-compose restart postgres
 docker-compose restart mongodb
 ```
 
+### App won't start
+1. Check if `package.json` and `requirements.txt` exist
+2. View logs: `docker-compose logs app`
+3. Rebuild: `docker-compose up -d --build app`
+
+### Dependencies not found
+```bash
+# Rebuild the app container
+docker-compose up -d --build app
+```
+
+### Port conflicts
+Edit `.env` file and change `APP_PORT`, `API_PORT`, `POSTGRES_PORT`, or `MONGO_PORT`
+
 ### Reset everything (⚠️ destroys all data)
 ```bash
 docker-compose down -v
-docker-compose up -d
+docker-compose up -d --build
 ```
+
+## Production Deployment
+
+For production, update your `.env`:
+```bash
+NODE_ENV=production
+APP_COMMAND=npm start
+```
+
+Consider:
+- Using specific version tags instead of `latest`
+- Setting up proper secrets management
+- Configuring resource limits
+- Setting up health checks and monitoring
+- Using a reverse proxy (nginx, traefik)

@@ -1,6 +1,32 @@
 version: '3.8'
 
 services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: app
+    environment:
+      # Database connection strings
+      POSTGRES_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@postgres:5432/${POSTGRES_DB:-mydb}
+      MONGODB_URL: mongodb://${MONGO_ROOT_USER:-admin}:${MONGO_ROOT_PASSWORD:-admin}@mongodb:27017/${MONGO_DB:-mydb}?authSource=admin
+      # Node environment
+      NODE_ENV: ${NODE_ENV:-development}
+    ports:
+      - "${APP_PORT:-3000}:3000"
+      - "${API_PORT:-8000}:8000"
+    volumes:
+      - .:/app
+      - /app/node_modules
+      - /app/.venv
+    depends_on:
+      postgres:
+        condition: service_healthy
+      mongodb:
+        condition: service_healthy
+    restart: unless-stopped
+    command: ${APP_COMMAND:-npm run dev}
+
   postgres:
     image: pgvector/pgvector:pg16
     container_name: postgres-pgvector

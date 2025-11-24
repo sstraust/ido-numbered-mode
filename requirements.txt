@@ -1,0 +1,5 @@
+# Python dependencies
+# Add your required packages here, for example:
+# pymongo>=4.6.0
+# psycopg2-binary>=2.9.9
+# pgvector>=0.2.4
