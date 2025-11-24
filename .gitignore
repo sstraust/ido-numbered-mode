@@ -4,6 +4,9 @@
 # Docker volumes (if using local bind mounts)
 data/
 
+# Remove example service files from version control (keep your actual services)
+# resources/systemctl/example-*.service
+
 # Python
 __pycache__/
 *.py[cod]

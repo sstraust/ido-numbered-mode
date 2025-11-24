@@ -284,6 +284,17 @@ docker-compose down -v
 docker-compose up -d --build
 ```
 
+## Systemd Services
+
+If you need to run additional services on the host machine (outside Docker), see:
+- **SYSTEMD.md** - Guide for choosing between Docker and systemd services
+- **resources/systemctl/** - Systemd service files and installation scripts
+
+To install systemd services:
+```bash
+sudo ./install-services.sh
+```
+
 ## Production Deployment
 
 For production, update your `.env`:
@@ -298,3 +309,4 @@ Consider:
 - Configuring resource limits
 - Setting up health checks and monitoring
 - Using a reverse proxy (nginx, traefik)
+- Review **SYSTEMD.md** for managing host services
