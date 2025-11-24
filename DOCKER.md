@@ -288,11 +288,17 @@ docker-compose up -d --build
 
 If you need to run additional services on the host machine (outside Docker), see:
 - **SYSTEMD.md** - Guide for choosing between Docker and systemd services
+- **SYSTEMD-TO-DOCKER.md** - Convert existing systemd services to Docker
 - **resources/systemctl/** - Systemd service files and installation scripts
 
 To install systemd services:
 ```bash
 sudo ./install-services.sh
+```
+
+To convert systemd services to Docker:
+```bash
+./systemd-to-docker.sh
 ```
 
 ## Production Deployment

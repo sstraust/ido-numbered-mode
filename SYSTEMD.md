@@ -2,6 +2,23 @@
 
 You have two options for running application services:
 
+## 🔄 Converting Systemd to Docker
+
+If you have existing systemd services and want to convert them to Docker:
+
+**Automated conversion:**
+```bash
+# Convert all services
+./systemd-to-docker.sh
+
+# Convert specific service
+./systemd-to-docker.sh resources/systemctl/myservice.service
+```
+
+**See the complete guide:** [SYSTEMD-TO-DOCKER.md](SYSTEMD-TO-DOCKER.md)
+
+---
+
 ## Option 1: Systemd Services on Host (Traditional Approach)
 
 Use this if you need services that:
