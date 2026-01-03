@@ -9,51 +9,110 @@
       (ido-complete))
     (ido-exit-minibuffer)))
 
-(defun split-once (initial-string separator)
-  (let ((string-location (string-match (regexp-quote separator) initial-string)))
-	(if (not string-location)
-	    nil
-	  (let ((string-end-location (+ string-location (length separator))))
-	    (list (substring initial-string 0 string-location)
-		  (substring initial-string string-end-location))))))
+(defun myido-completions (name)
+  "Return the string that is displayed after the user's text.
+Modified from `icomplete-completions'."
+  (let* ((comps ido-matches)
+	 (ind (and (consp (car comps)) (> (length (cdr (car comps))) 1)
+		   ido-merged-indicator))
+         (my/number 0)
+	 first)
 
+    (if (and ind ido-use-faces)
+	(put-text-property 0 1 'face 'ido-indicator ind))
 
-(defun ido-numbered-add-numbers-helper (remaining-string curr-matches num)
-  (if (not (and (car curr-matches)
-		(string-match (regexp-quote (car curr-matches)) remaining-string)
-		(< num 10)))
-      remaining-string
-    (let ((split-once-result (split-once remaining-string (car curr-matches))))
-      (concat (nth 0 split-once-result)
-	      (number-to-string num)
-	      " "
-	      (car curr-matches)
-	      (ido-numbered-add-numbers-helper (nth 1 split-once-result) (cdr curr-matches) (+ num 1))))))
+    (if (and ido-use-faces comps)
+	(let* ((fn (ido-name (car comps)))
+	       (ln (length fn)))
+	  (setq first (copy-sequence fn))
+	  (put-text-property 0 ln 'face
+			     (if (= (length comps) 1)
+                                 (if ido-incomplete-regexp
+                                     'ido-incomplete-regexp
+                                   'ido-only-match)
+			       'ido-first-match)
+			     first)
+	  (if ind (setq first (concat first ind)))
+	  (setq comps (cons first (cdr comps)))))
 
-	   
+    (cond ((null comps)
+	   (cond
+	    (ido-show-confirm-message
+	     (or (nth 10 ido-decorations) " [Confirm]"))
+	    (ido-directory-nonreadable
+	     (or (nth 8 ido-decorations) " [Not readable]"))
+	    (ido-directory-too-big
+	     (or (nth 9 ido-decorations) " [Too big]"))
+	    (ido-report-no-match
+	     (nth 6 ido-decorations))  ;; [No match]
+	    (t "")))
+	  (ido-incomplete-regexp
+           (concat " " (car comps)))
+	  ((null (cdr comps))		;one match
+	   (concat (if (if (not ido-enable-regexp)
+                           (= (length (ido-name (car comps))) (length name))
+                         ;; We can't rely on the length of the input
+                         ;; for regexps, so explicitly check for a
+                         ;; complete match
+                         (string-match name (ido-name (car comps)))
+                         (string-equal (match-string 0 (ido-name (car comps)))
+                                       (ido-name (car comps))))
+                       ""
+                     ;; When there is only one match, show the matching file
+                     ;; name in full, wrapped in [ ... ].
+                     (concat
+                      (or (nth 11 ido-decorations) (nth 4 ido-decorations))
+                      (ido-name (car comps))
+                      (or (nth 12 ido-decorations) (nth 5 ido-decorations))))
+		   (if (not ido-use-faces) (nth 7 ido-decorations))))  ;; [Matched]
+	  (t				;multiple matches
+	   (let* ((items (if (> ido-max-prospects 0) (1+ ido-max-prospects) 999))
+		  (alternatives
+		   (apply
+		    #'concat
+		    (cdr (apply
+			  #'nconc
+			  (mapcar
+			   (lambda (com)
+			     (setq com (concat (number-to-string my/number) " " (ido-name com)))
+			     (setq items (1- items))
+                             (setq my/number (1+ my/number))
 
-(defun ido-numbered-add-numbers-to-matches (input-str)
-  "Display ido matches in a numbered list, i.e. {0 match1} {1 match2}, etc.
-takes as input the currently displayed/otherwise displayed completion string"
-  (ido-numbered-add-numbers-helper input-str ido-matches 0))
+			     (cond
+			      ((< items 0) ())
+			      ((= items 0) (list (nth 3 ido-decorations))) ; " | ..."
+			      (t
+			       (list (or ido-separator (nth 2 ido-decorations)) ; " | "
+				     (let ((str (substring com 0)))
+				       (if (and ido-use-faces
+						(not (string= str first))
+						(ido-final-slash str))
+					   (put-text-property 0 (length str) 'face 'ido-subdir str))
+				       str)))))
+			   comps))))))
 
-(defvar ido-numbered-set-matches-set nil)
+	     (concat
+	      ;; put in common completion item -- what you get by pressing tab
+	      (if (and (stringp ido-common-match-string)
+		       (> (length ido-common-match-string) (length name)))
+		  (concat (nth 4 ido-decorations)   ;; [ ... ]
+			  (substring ido-common-match-string (length name))
+			  (nth 5 ido-decorations)))
+	      ;; list all alternatives
+	      (nth 0 ido-decorations)  ;; { ... }
+	      alternatives
+	      (nth 1 ido-decorations)))))))
 
 (defun ido-numbered-mode-turn-on ()
-  (if (not ido-numbered-set-matches-set)
-      (progn (setq ido-numbered-ido-set-matches-copy (symbol-function 'ido-completions))
-	     (setq ido-numbered-set-matches-set t)))
-  (fset 'ido-completions (lambda (name)
-			 (ido-numbered-add-numbers-to-matches (funcall ido-numbered-ido-set-matches-copy name))))
+  (advice-add 'ido-completions :override #'myido-completions)
   (add-hook 'ido-setup-hook 'ido-numbered-define-keys))
 
 (defun ido-numbered-mode-turn-off ()
-  (fset 'ido-completions ido-numbered-ido-set-matches-copy)
-  (setq ido-numbered-set-matches-set nil)
+  (advice-remove 'ido-completions #'myido-completions)
   (remove-hook 'ido-setup-hook 'ido-numbered-define-keys))
 
 (defun ido-numbered-define-keys ()
-    (define-key ido-completion-map (kbd "1") (lambda () (interactive) (ido-numbered-select-number 1)))
+  (define-key ido-completion-map (kbd "1") (lambda () (interactive) (ido-numbered-select-number 1)))
   (define-key ido-completion-map (kbd "2") (lambda () (interactive) (ido-numbered-select-number 2)))
   (define-key ido-completion-map (kbd "3") (lambda () (interactive) (ido-numbered-select-number 3)))
   (define-key ido-completion-map (kbd "4") (lambda () (interactive) (ido-numbered-select-number 4)))
@@ -70,6 +129,5 @@ takes as input the currently displayed/otherwise displayed completion string"
   (if ido-numbered-mode
       (ido-numbered-mode-turn-on)
     (ido-numbered-mode-turn-off)))
-
 
 (provide 'ido-numbered-mode)
