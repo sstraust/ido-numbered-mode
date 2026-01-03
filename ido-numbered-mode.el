@@ -9,19 +9,6 @@
       (ido-complete))
     (ido-exit-minibuffer)))
 
-(defun ido-numbered-select-number (num)
-  "Select the nth match and go to it."
-  (interactive)
-  (if (> (length ido-text) 0)
-      (self-insert-command 1)
-    (when (> (length ido-matches) num)
-      (dotimes (i num)
-	(ido-next-match))
-      (ido-complete))
-    (ido-exit-minibuffer)))
-
-(defvar ido-numbered-set-matches-set nil)
-
 (defun myido/completions (name)
   "Return the string that is displayed after the user's text.
 Modified from `icomplete-completions'."
@@ -117,18 +104,14 @@ Modified from `icomplete-completions'."
 	      (nth 1 ido-decorations)))))))
 
 (defun ido-numbered-mode-turn-on ()
-  (unless ido-numbered-set-matches-set
-      (setq ido-numbered-set-matches-set t))
   (advice-add 'ido-completions :override #'myido/completions)
   (add-hook 'ido-setup-hook 'ido-numbered-define-keys))
 
 (defun ido-numbered-mode-turn-off ()
   (advice-remove 'ido-completions #'myido/completions)
-  (setq ido-numbered-set-matches-set nil)
   (remove-hook 'ido-setup-hook 'ido-numbered-define-keys))
 
 (defun ido-numbered-define-keys ()
-  (define-key ido-completion-map (kbd "0") (lambda () (interactive) (ido-numbered-select-number 0)))
   (define-key ido-completion-map (kbd "1") (lambda () (interactive) (ido-numbered-select-number 1)))
   (define-key ido-completion-map (kbd "2") (lambda () (interactive) (ido-numbered-select-number 2)))
   (define-key ido-completion-map (kbd "3") (lambda () (interactive) (ido-numbered-select-number 3)))
