@@ -9,7 +9,7 @@
       (ido-complete))
     (ido-exit-minibuffer)))
 
-(defun myido/completions (name)
+(defun myido-completions (name)
   "Return the string that is displayed after the user's text.
 Modified from `icomplete-completions'."
   (let* ((comps ido-matches)
@@ -104,11 +104,11 @@ Modified from `icomplete-completions'."
 	      (nth 1 ido-decorations)))))))
 
 (defun ido-numbered-mode-turn-on ()
-  (advice-add 'ido-completions :override #'myido/completions)
+  (advice-add 'ido-completions :override #'myido-completions)
   (add-hook 'ido-setup-hook 'ido-numbered-define-keys))
 
 (defun ido-numbered-mode-turn-off ()
-  (advice-remove 'ido-completions #'myido/completions)
+  (advice-remove 'ido-completions #'myido-completions)
   (remove-hook 'ido-setup-hook 'ido-numbered-define-keys))
 
 (defun ido-numbered-define-keys ()
